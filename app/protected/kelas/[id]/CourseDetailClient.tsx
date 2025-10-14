@@ -1,6 +1,3 @@
-"use client"
-
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Star, Clock, TrendingUp, PlayCircle } from "lucide-react"
 import Header from "@/components/Header"
@@ -9,35 +6,27 @@ import { Button } from "@/components/ui/button"
 
 type Props = {
   course: {
-    title: string
-    image: string
-    description: string
-    level: string
-    duration: string
-    rating?: number
-    author?: string
-    content?: { id: number; title: string }[]
-  }
-}
-
-export function CourseDetailClient({ course }: Props) {
-  const router = useRouter()
-
-  return (
+@@ -25,85 +27,87 @@
     <>
     <Header />
     <main className="min-h-screen bg-[#F8FAF6] p-8">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8">
       <div className="relative max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8">
         {/* Back button */}
+        <button
         <Button
           variant="ghost"
           className="flex items-center gap-2 absolute top-5 left-5 mb-50  bg-transparent hover:bg-transparent font-semibold hover:text-foreground"
           onClick={() => router.back()}
+          className="mb-6 rounded-xl bg-gray-200 px-4 py-2 hover:bg-gray-300 text-sm"
         >
+          Kembali
+        </button>
           <ArrowLeft className="h-4 w-4" />
           
         </Button>
 
+        <div className="flex flex-col md:flex-row gap-8">
         <div className="flex flex-col md:flex-row gap-8 mt-10">
           {/* Image */}
           <div className="md:w-1/2 w-full">
@@ -103,8 +92,6 @@ export function CourseDetailClient({ course }: Props) {
               )}
             </div>
           </div>
-
-          
         </div>
       </div>
     </main>
