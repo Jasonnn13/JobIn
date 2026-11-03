@@ -5,6 +5,15 @@ import type { Job } from "@/lib/types"
 
 const JOB_COLUMNS = "id, employer_id, employer_name, title, category, location, pay, description, image_path, status, posted_at"
 
+// Shown when the employer didn't upload a picture. Images ship in public/.
+const CATEGORY_IMAGES: Record<string, string> = {
+  tailor: "/tailor-job.png",
+  builder: "/construction-job.png",
+  driver: "/driver-job.png",
+  housekeeping: "/housekeeper-job.png",
+  vendor: "/vendor-job.png",
+}
+
 export function toJob(row: JobRow, supabase: SupabaseClient<Database>): Job {
   return {
     id: row.id,
@@ -17,7 +26,7 @@ export function toJob(row: JobRow, supabase: SupabaseClient<Database>): Job {
     // Public bucket: building the URL needs no network request.
     image: row.image_path
       ? supabase.storage.from("job-images").getPublicUrl(row.image_path).data.publicUrl
-      : "/empty-image.jpg",
+      : CATEGORY_IMAGES[row.category] ?? "/empty-image.jpg",
     status: row.status,
     uid: row.employer_id,
     postedDate: row.posted_at,

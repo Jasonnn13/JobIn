@@ -16,6 +16,11 @@ const NOTICES: Record<string, string> = {
   'no-profile': 'This account isn’t fully set up yet. Try again in a moment, or contact support if it keeps happening.',
 };
 
+// Seeded by supabase/seeds/demo.sql so testers can try the app. Off unless
+// NEXT_PUBLIC_SHOW_DEMO_LOGIN=true; when off, the build drops these public demo credentials.
+const SHOW_DEMO_LOGIN = process.env.NEXT_PUBLIC_SHOW_DEMO_LOGIN === 'true';
+const DEMO_ACCOUNT = { email: 'demo.worker@jobin.test', password: 'JobinDemo2026!' };
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -81,6 +86,20 @@ function LoginForm() {
       <Button type="submit" size="lg" className="w-full" disabled={!canSubmit}>
         {loading ? 'Logging in…' : 'Log in'}
       </Button>
+      {SHOW_DEMO_LOGIN && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => {
+            setEmail(DEMO_ACCOUNT.email);
+            setPassword(DEMO_ACCOUNT.password);
+            setError('');
+          }}
+        >
+          Use the demo worker account
+        </Button>
+      )}
     </form>
   );
 }
