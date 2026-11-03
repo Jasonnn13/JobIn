@@ -1,16 +1,13 @@
 'use client';
 import React from 'react'
 import { Mail, Phone, Target, Users, Heart, ArrowRight } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 
 function page() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className="flex flex-col">
       
       <main className="flex-1">
 
@@ -195,7 +192,6 @@ function page() {
         </section>
       </main>
 
-      <Footer />
     </div>
   )
 }

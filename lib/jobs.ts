@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/client"
 import type { Database, JobRow } from "@/lib/supabase/database.types"
 import type { Job } from "@/lib/types"
 
-const JOB_COLUMNS = "id, employer_id, employer_name, title, category, location, pay, description, image_path, status, posted_at"
+export const JOB_COLUMNS = "id, employer_id, employer_name, title, category, location, pay, description, image_path, status, posted_at"
 
 // Shown when the employer didn't upload a picture. Images ship in public/.
 const CATEGORY_IMAGES: Record<string, string> = {

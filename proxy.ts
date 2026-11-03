@@ -4,7 +4,7 @@ import { updateSession } from "@/lib/supabase/proxy"
 export async function proxy(request: NextRequest) {
   return updateSession(request, {
     requiredRole: "worker",
-    protectedPrefixes: ["/home", "/jobs", "/courses", "/profile", "/edit-profile", "/about"],
+    protectedPrefixes: ["/home", "/jobs", "/courses", "/profile", "/edit-profile", "/about", "/employers"],
     authPaths: ["/login", "/signup"],
     homePath: "/home",
   })

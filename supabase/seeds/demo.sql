@@ -114,3 +114,29 @@ values
   ('a0000000-0000-4000-8000-000000000003', '11111111-1111-4111-8111-111111111111', 'accepted', now() - interval '2 days'),
   ('a0000000-0000-4000-8000-000000000010', '11111111-1111-4111-8111-111111111111', 'rejected', now() - interval '10 days')
 on conflict (job_id, applicant_id) do nothing;
+
+-- Work history the demo worker added themselves -----------------------------------
+
+insert into public.work_history (id, profile_id, role, employer, start_year, end_year, description)
+values
+  ('b0000000-0000-4000-8000-000000000001', '11111111-1111-4111-8111-111111111111',
+   'Mason''s helper', 'CV Bangun Sejahtera', 2019, 2021,
+   'Mixed mortar, laid foundations, and plastered walls on housing projects in Depok.'),
+  ('b0000000-0000-4000-8000-000000000002', '11111111-1111-4111-8111-111111111111',
+   'House painter', 'Self-employed', 2021, null,
+   'Interior and exterior painting for homes and small shops around South Jakarta.')
+on conflict (id) do nothing;
+
+-- Reviews for the accepted hire (house painter job), one in each direction ---------
+-- The trigger works out who is being reviewed and checks the hire was accepted.
+
+insert into public.reviews (application_id, reviewer_id, rating, comment)
+select a.id, v.reviewer_id, v.rating, v.comment
+from public.applications a
+cross join (values
+  ('11111111-1111-4111-8111-111111111111'::uuid, 5, 'Paid on time every week and explained the work clearly. Would work for them again.'),
+  ('22222222-2222-4222-8222-222222222222'::uuid, 5, 'Careful, tidy work and always on time. Finished the house two days early.')
+) as v(reviewer_id, rating, comment)
+where a.job_id = 'a0000000-0000-4000-8000-000000000003'
+  and a.applicant_id = '11111111-1111-4111-8111-111111111111'
+on conflict (application_id, reviewer_id) do nothing;

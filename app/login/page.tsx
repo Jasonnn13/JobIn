@@ -17,8 +17,10 @@ const NOTICES: Record<string, string> = {
 };
 
 // Seeded by supabase/seeds/demo.sql so testers can try the app. Off unless
-// NEXT_PUBLIC_SHOW_DEMO_LOGIN=true; when off, the build drops these public demo credentials.
-const SHOW_DEMO_LOGIN = process.env.NEXT_PUBLIC_SHOW_DEMO_LOGIN === 'true';
+// NEXT_PUBLIC_SHOW_DEMO_LOGIN=true (always on with `npm run dev`); when off, the build drops these
+// public demo credentials.
+const SHOW_DEMO_LOGIN =
+  process.env.NEXT_PUBLIC_SHOW_DEMO_LOGIN === 'true' || process.env.NODE_ENV === 'development';
 const DEMO_ACCOUNT = { email: 'demo.worker@jobin.test', password: 'JobinDemo2026!' };
 
 function LoginForm() {

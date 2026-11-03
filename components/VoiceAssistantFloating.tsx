@@ -150,7 +150,7 @@ export default function VoiceAssistantFloating() {
             : "Ready. Go ahead and speak";
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full border bg-card p-1.5 pl-4 shadow-lg">
+    <div className="fixed bottom-20 right-4 z-50 flex items-center gap-2 rounded-full border bg-card p-1.5 pl-4 shadow-lg md:bottom-4">
       <p className="text-sm font-medium" aria-live="polite">
         {statusText}
       </p>

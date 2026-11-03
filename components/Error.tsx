@@ -1,23 +1,10 @@
-'use client'
-import React from 'react'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-
+// In-page error state; the header stays usable so people can navigate away.
 export default function Error() {
   return (
-    <div className="relative loading-page flex flex-col items-center justify-center min-h-screen space-y-4">
-
-      <Image
-        src="/error-image.png"
-        alt="Error"
-        width={200}
-        height={200}
-        priority
-      />
-
-      <h3 className="font-semibold text-lg text-neutral-700">
-        Something went wrong. Reload the page to try again.
-      </h3>
+    <div className="mx-auto flex max-w-md flex-col items-center px-4 py-16 text-center" role="alert">
+      <img src="/error-image.png" alt="" className="size-32 object-contain" />
+      <h1 className="mt-4 text-xl font-semibold">Something went wrong</h1>
+      <p className="mt-1 text-base text-muted-foreground">Check your connection and reload the page to try again.</p>
     </div>
   )
 }

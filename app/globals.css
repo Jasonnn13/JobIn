@@ -47,38 +47,38 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 
-  /* Slate ink, deep teal brand, amber used only for small markers */
-  --background: #f7f8fa;
-  --foreground: #1d2433;
+  /* Professional-network palette: cool grey canvas, white cards, one confident blue. */
+  --background: #f1f3f6;
+  --foreground: #191c21;
 
   --card: #ffffff;
-  --card-foreground: #1d2433;
+  --card-foreground: #191c21;
 
   --popover: #ffffff;
-  --popover-foreground: #1d2433;
+  --popover-foreground: #191c21;
 
-  --primary: #0e5e6f;
+  --primary: #0b5fb0;
   --primary-foreground: #ffffff;
 
-  --secondary: #eef1f4;
-  --secondary-foreground: #1d2433;
+  --secondary: #eef1f5;
+  --secondary-foreground: #191c21;
 
-  --muted: #eef1f4;
-  --muted-foreground: #5b6474;
+  --muted: #eef1f5;
+  --muted-foreground: #5b6370;
 
-  --accent: #e7f1f3;
-  --accent-foreground: #0e5e6f;
+  --accent: #e8f1fb;
+  --accent-foreground: #0b5fb0;
 
   --signal: #f2b230;
   --signal-strong: #d99a17;
-  --success: #12805c;
-  --destructive: #c0362c;
+  --success: #0e7a43;
+  --destructive: #c23b2a;
 
-  --border: #e4e7ec;
-  --input: #cfd5dd;
-  --ring: #0e5e6f;
+  --border: #dfe3e8;
+  --input: #c5ccd6;
+  --ring: #0b5fb0;
 }
 
 @layer base {
@@ -97,6 +97,28 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Motion: one short entrance for page content and calm state changes. Turned off by
+   the reduced-motion rule above. */
+@keyframes enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@utility animate-enter {
+  animation: enter 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Placeholder shaped like the real content, so nothing jumps when data arrives. */
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@utility skeleton {
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--muted) 30%, #f7f8fa 50%, var(--muted) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
 }
 
 .loading-page {

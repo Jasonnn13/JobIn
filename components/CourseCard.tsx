@@ -1,38 +1,24 @@
 import Link from "next/link"
-import { Clock } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import type { Course } from "@/lib/types"
 
-interface CourseCardProps {
-  course: Course
-}
-
-const CourseCard = ({ course }: CourseCardProps) => {
+const CourseCard = ({ course }: { course: Course }) => {
   if (!course) return null
 
   return (
     <Link
       href={`/courses/${course.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border bg-card transition-shadow duration-200 hover:shadow-md"
     >
-      <img
-        src={course.image || "/empty-image.jpg"}
-        alt=""
-        loading="lazy"
-        className="aspect-[16/9] w-full bg-muted object-cover"
-      />
-
-      <div className="flex flex-1 flex-col p-5">
-        {course.level && (
-          <Badge variant="secondary" className="mb-3">
-            {course.level}
-          </Badge>
-        )}
-        <h3 className="text-lg font-semibold leading-snug group-hover:text-primary">{course.title}</h3>
-        <p className="mt-auto flex items-center gap-1.5 pt-4 text-sm text-muted-foreground">
-          <Clock className="size-4" aria-hidden />
+      <div className="relative">
+        <img src={course.image} alt="" loading="lazy" className="aspect-video w-full bg-muted object-cover" />
+        <span className="absolute bottom-2 right-2 rounded bg-foreground/80 px-1.5 py-0.5 text-xs font-semibold text-white">
           {course.duration}
-        </p>
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col p-4">
+        <p className="text-sm text-muted-foreground">{course.level}</p>
+        <h3 className="mt-1 line-clamp-2 text-base font-semibold leading-snug group-hover:underline">{course.title}</h3>
+        {course.author && <p className="mt-auto pt-2 text-sm text-muted-foreground">By {course.author}</p>}
       </div>
     </Link>
   )

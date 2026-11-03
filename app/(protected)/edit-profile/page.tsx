@@ -11,13 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import Loading from '@/components/Loading';
 import Error from '@/components/Error';
 import { useProfile, MAX_PHOTO_BYTES, type Profile, type ProfileUpdate } from '@/hooks/useProfile';
-
-const SKILLS = ['Sewing', 'Repairs', 'Cooking', 'Housework', 'Laundry', 'Painting', 'Driving', 'Construction'];
+import { SkillsInput } from '@/components/profile/SkillsInput';
+import { WorkHistoryEditor } from '@/components/profile/WorkHistoryEditor';
 
 // Same limits as the database constraints in supabase/migrations.
 const schema = z.object({
@@ -85,9 +83,6 @@ function EditProfileForm({
     setPhoto(file);
     setPreviewUrl(file ? URL.createObjectURL(file) : null);
   };
-
-  const toggleSkill = (skill: string) =>
-    setSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]));
 
   const onSubmit = async (data: FormData) => {
     setSaveError('');
@@ -170,17 +165,7 @@ function EditProfileForm({
         <FieldError message={errors.description?.message} />
       </div>
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Skills</legend>
-        <div className="grid grid-cols-2 gap-3">
-          {SKILLS.map((skill) => (
-            <label key={skill} className="flex min-h-11 items-center gap-2 rounded-md border px-3">
-              <input type="checkbox" checked={skills.includes(skill)} onChange={() => toggleSkill(skill)} className="size-4" />
-              {skill}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <SkillsInput value={skills} onChange={setSkills} />
 
       {saveError && (
         <p role="alert" className="text-sm text-destructive">
@@ -208,19 +193,20 @@ export default function EditProfilePage() {
   if (!profile) return <Error />;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
+    <div className="flex flex-col">
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 sm:px-6">
         <Button variant="ghost" className="mb-4 -ml-3" onClick={() => router.back()}>
           <ArrowLeft aria-hidden />
           Back
         </Button>
         <h1 className="text-3xl font-semibold">Edit profile</h1>
-        <div className="mt-6 rounded-xl border bg-card p-6">
+        <div className="mt-6 rounded-lg border bg-card p-6">
           <EditProfileForm profile={profile} updateProfile={updateProfile} />
         </div>
+        <div className="mt-4 rounded-lg border bg-card p-6">
+          <WorkHistoryEditor userId={profile.id} />
+        </div>
       </main>
-      <Footer />
     </div>
   );
 }
