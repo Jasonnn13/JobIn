@@ -1,13 +1,11 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import CourseCard from "./CourseCard"
 import useEmblaCarousel from "embla-carousel-react"
+import CourseCard from "./CourseCard"
+import { SectionHeader } from "./SectionHeader"
 import { fetchCourses } from "@/lib/courses"
 import type { Course } from "@/lib/types"
-import Link from "next/link"
 
 const CoursesCarousel = () => {
   const [courses, setCourses] = useState<Course[]>([])
@@ -31,51 +29,34 @@ const CoursesCarousel = () => {
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
   return (
-    <section id="courses" className="py-12 px-10 lg:px-20">
-      <div className="container">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">
-              Pelajari Kemampuan Baru
-            </h2>
-            <p className="text-muted-foreground">
-              Kelas pendek untuk meningkatkan kemampuan bekerja Anda.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={scrollPrev} className="rounded-full">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={scrollNext} className="rounded-full">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+    <section id="courses" className="border-y bg-card">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        <SectionHeader
+          title="Build your skills"
+          description="Short courses you can take on your phone."
+          moreHref="/courses"
+          moreLabel="All courses"
+          onPrev={scrollPrev}
+          onNext={scrollNext}
+        />
 
         {loading ? (
-          <p className="text-center text-muted-foreground">Loading courses...</p>
+          <div className="flex gap-5" aria-busy="true">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-72 flex-1 animate-pulse rounded-xl bg-muted" />
+            ))}
+          </div>
         ) : (
           <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex gap-6">
+            <div className="flex gap-5">
               {courses.map((course) => (
-                <div
-                  key={course.id}
-                  className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] xl:flex-[0_0_25%]"
-                >
+                <div key={course.id} className="min-w-0 flex-[0_0_85%] sm:flex-[0_0_48%] lg:flex-[0_0_31.5%]">
                   <CourseCard course={course} />
                 </div>
               ))}
             </div>
           </div>
         )}
-
-        <div className="mt-8 text-center">
-          <Link href="/protected/kelas">
-            <Button variant="outline" size="lg" className="rounded-xl font-medium">
-              Lihat Semua Kelas
-            </Button>
-          </Link>
-        </div>
       </div>
     </section>
   )

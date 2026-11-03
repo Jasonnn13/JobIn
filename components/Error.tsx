@@ -16,7 +16,7 @@ export default function Error() {
       />
 
       <h3 className="font-semibold text-lg text-neutral-700">
-        Yah, Terjadi kesalahan
+        Something went wrong. Reload the page to try again.
       </h3>
     </div>
   )

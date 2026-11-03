@@ -1,15 +1,14 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
-import Link from "next/link"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { JobCard } from "./JobCard"
-import { fetchJobs } from "@/lib/jobs"
+import { useEffect, useState, useCallback } from "react"
 import useEmblaCarousel from "embla-carousel-react"
+import { JobCard } from "./JobCard"
+import { SectionHeader } from "./SectionHeader"
+import { fetchJobs } from "@/lib/jobs"
+import type { Job } from "@/lib/types"
 
-export default function Recommendations({ label = "Sekitar Anda" }) {
-  const [jobs, setJobs] = useState<any[]>([])
+export default function Recommendations() {
+  const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start" })
 
@@ -19,59 +18,41 @@ export default function Recommendations({ label = "Sekitar Anda" }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi])
-  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi])
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
   return (
-    <section id="jobs" className="py-12 bg-background px-10 lg:px-20">
-      <div className="container">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">
-              Lihat Pekerjaan Lainnya
-            </h2>
-            <p className="text-muted-foreground">
-              Yuk, Kepoin pekerjaan informal lainnya !</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={scrollPrev} className="rounded-full">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={scrollNext} className="rounded-full">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+    <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <SectionHeader
+        title="More jobs"
+        description="The latest jobs from every city."
+        moreHref="/jobs"
+        moreLabel="See all"
+        onPrev={scrollPrev}
+        onNext={scrollNext}
+      />
+
+      {loading ? (
+        <div className="flex gap-5" aria-busy="true">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-80 flex-1 animate-pulse rounded-xl bg-muted" />
+          ))}
+        </div>
+      ) : jobs.length === 0 ? (
+        <p className="rounded-xl border border-dashed bg-card p-8 text-center text-base text-muted-foreground">
+          No jobs yet. Check back later.
+        </p>
+      ) : (
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div className="flex gap-5">
+            {jobs.map((job) => (
+              <div key={job.id} className="min-w-0 flex-[0_0_85%] sm:flex-[0_0_48%] lg:flex-[0_0_31.5%]">
+                <JobCard job={job} />
+              </div>
+            ))}
           </div>
         </div>
-
-        {loading ? (
-          <p className="text-center text-muted-foreground">Memuat pekerjaan...</p>
-        ) : jobs.length === 0 ? (
-          <p className="text-center text-muted-foreground">
-            Tidak ada pekerjaan di dekat Anda.
-          </p>
-        ) : (
-          <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex gap-6">
-              {jobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] xl:flex-[0_0_25%]"
-                >
-                  <JobCard job={job} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="mt-8 text-center">
-          <Link href="/protected/pekerjaan">
-            <Button variant="outline" size="lg" className="rounded-xl font-medium">
-              Lihat Semua Pekerjaan
-            </Button>
-          </Link>
-        </div>
-      </div>
+      )}
     </section>
   )
 }

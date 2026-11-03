@@ -1,11 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* dark variant via .dark pada <html> */
 @custom-variant dark (&:is(.dark *));
 
-/* Map Tailwind V4 design tokens -> CSS variables kamu.
-   Biarkan ini, yang berubah cuma nilai var(--...) di :root/.dark. */
+/* Tailwind tokens -> CSS variables below. Change values in :root, not here. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -34,20 +32,13 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  /* Amber: small markers only (badges, dots), never large surfaces. */
+  --color-signal: var(--signal);
+  --color-signal-strong: var(--signal-strong);
+  --color-success: var(--success);
 
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -55,130 +46,60 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* =========================
-   HSL DESIGN TOKENS (React-style)
-   ========================= */
 :root {
   --radius: 0.75rem;
 
-  /* Light */
-  --background: hsl(0 0% 98%);
-  --foreground: hsl(210 15% 20%);
+  /* Slate ink, deep teal brand, amber used only for small markers */
+  --background: #f7f8fa;
+  --foreground: #1d2433;
 
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(210 15% 20%);
+  --card: #ffffff;
+  --card-foreground: #1d2433;
 
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(210 15% 20%);
+  --popover: #ffffff;
+  --popover-foreground: #1d2433;
 
-  --primary: hsl(207 50% 54%);
-  --primary-foreground: hsl(0 0% 100%);
+  --primary: #0e5e6f;
+  --primary-foreground: #ffffff;
 
-  --secondary: hsl(210 17% 95%);
-  --secondary-foreground: hsl(210 15% 20%);
+  --secondary: #eef1f4;
+  --secondary-foreground: #1d2433;
 
-  --muted: hsl(210 17% 95%);
-  --muted-foreground: hsl(210 10% 45%);
+  --muted: #eef1f4;
+  --muted-foreground: #5b6474;
 
-  --accent: hsl(30 100% 60%);
-  --accent-foreground: hsl(0 0% 100%);
+  --accent: #e7f1f3;
+  --accent-foreground: #0e5e6f;
 
-  --destructive: hsl(0 84.2% 60.2%);
+  --signal: #f2b230;
+  --signal-strong: #d99a17;
+  --success: #12805c;
+  --destructive: #c0362c;
 
-  --border: hsl(210 17% 90%);
-  --input: hsl(210 17% 90%);
-  --ring: hsl(207 50% 54%);
-
-  /* Optional extra tokens (kalau dipakai di UI kamu) */
-  --sidebar: hsl(0 0% 100%);
-  --sidebar-foreground: hsl(210 15% 20%);
-  --sidebar-primary: hsl(207 50% 54%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(210 17% 95%);
-  --sidebar-accent-foreground: hsl(210 15% 20%);
-  --sidebar-border: hsl(210 17% 90%);
-  --sidebar-ring: hsl(207 50% 54%);
-
-  --chart-1: hsl(210 80% 55%);
-  --chart-2: hsl(160 65% 45%);
-  --chart-3: hsl(260 65% 60%);
-  --chart-4: hsl(40 95% 56%);
-  --chart-5: hsl(12 85% 58%);
-
-  /* Gradients & shadows (optional) */
-  --gradient-primary: linear-gradient(135deg, hsl(207 50% 54%), hsl(207 50% 64%));
-  --gradient-accent: linear-gradient(135deg, hsl(30 100% 60%), hsl(30 100% 70%));
-
-  --shadow-sm: 0 2px 8px hsl(207 50% 54% / 0.10);
-  --shadow-md: 0 4px 16px hsl(207 50% 54% / 0.15);
-  --shadow-lg: 0 8px 24px hsl(207 50% 54% / 0.20);
-
-  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --border: #e4e7ec;
+  --input: #cfd5dd;
+  --ring: #0e5e6f;
 }
 
-.dark {
-  --background: hsl(210 15% 12%);
-  --foreground: hsl(0 0% 98%);
-
-  --card: hsl(210 15% 15%);
-  --card-foreground: hsl(0 0% 98%);
-
-  --popover: hsl(210 15% 15%);
-  --popover-foreground: hsl(0 0% 98%);
-
-  --primary: hsl(207 50% 54%);
-  --primary-foreground: hsl(0 0% 100%);
-
-  --secondary: hsl(210 15% 20%);
-  --secondary-foreground: hsl(0 0% 98%);
-
-  --muted: hsl(210 15% 20%);
-  --muted-foreground: hsl(210 10% 65%);
-
-  --accent: hsl(30 100% 60%);
-  --accent-foreground: hsl(0 0% 100%);
-
-  --destructive: hsl(0 62.8% 50%);
-
-  --border: hsl(210 15% 25%);
-  --input: hsl(210 15% 25%);
-  --ring: hsl(207 50% 54%);
-
-  /* Optional */
-  --sidebar: hsl(210 15% 15%);
-  --sidebar-foreground: hsl(0 0% 98%);
-  --sidebar-primary: hsl(207 50% 54%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(210 15% 20%);
-  --sidebar-accent-foreground: hsl(0 0% 98%);
-  --sidebar-border: hsl(210 15% 25%);
-  --sidebar-ring: hsl(207 50% 54%);
-
-  --chart-1: hsl(225 80% 65%);
-  --chart-2: hsl(160 65% 48%);
-  --chart-3: hsl(270 60% 65%);
-  --chart-4: hsl(300 70% 60%);
-  --chart-5: hsl(20 85% 60%);
-}
-
-/* Base resets */
 @layer base {
+  /* Larger base size: many users read slowly or on small, bright-lit screens. */
+  html { font-size: 106.25%; }
   * { @apply border-border; }
-  body { @apply bg-background text-foreground antialiased; }
-
+  body { @apply bg-background text-foreground font-sans antialiased; }
+  h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
+  :focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
 }
 
-/* Utility extras (opsional, nyaman dipakai ulang) */
-@layer utilities {
-  .transition-smooth { transition: var(--transition-smooth); }
-  .bg-gradient-primary { background-image: var(--gradient-primary); }
-  .bg-gradient-accent { background-image: var(--gradient-accent); }
-  .shadow-brand-sm { box-shadow: var(--shadow-sm); }
-  .shadow-brand-md { box-shadow: var(--shadow-md); }
-  .shadow-brand-lg { box-shadow: var(--shadow-lg); }
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-.loading-page{
+.loading-page {
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -186,8 +107,5 @@
   align-items: center;
   flex-direction: column;
   gap: 2em;
-  background-color: white;
+  background-color: var(--background);
 }
-
-
-

@@ -1,0 +1,8 @@
+# Never upload secrets or local tooling state with `vercel deploy`.
+# Environment variables are set in the Vercel project instead.
+.env
+.env.*
+supabase/.temp
+supabase/.branches
+.next
+node_modules

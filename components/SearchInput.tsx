@@ -1,32 +1,26 @@
 "use client";
-import { Search, Mic } from "lucide-react"
+import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 type Props = {
   value: string
   onChange: (v: string) => void
   placeholder?: string
+  label?: string
 }
 
-export function SearchInput({ value, onChange, placeholder = "Cari pekerjaan..." }: Props) {
+export function SearchInput({ value, onChange, placeholder = "Search jobs", label = "Search jobs" }: Props) {
   return (
     <div className="relative">
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-        <Search className="h-5 w-5" aria-hidden />
-      </span>
+      <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
       <Input
+        type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-12 rounded-xl pl-10 pr-12"
-        aria-label="Cari pekerjaan"
+        className="h-12 pl-12"
+        aria-label={label}
       />
-      <button
-        type="button"
-        aria-label="Voice search (coming soon)"
-        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-accent"
-      >
-      </button>
     </div>
   )
 }

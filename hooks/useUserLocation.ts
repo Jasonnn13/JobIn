@@ -3,65 +3,57 @@
 import { useEffect, useState } from "react";
 
 export type GeoCoords = { latitude: number; longitude: number } | null;
-export type LocationStatus = "idle" | "locating" | "resolved" | "denied" | "unsupported" | "error";
+export type LocationStatus = "locating" | "resolved" | "denied" | "unsupported" | "error";
+type LocationState = { label: string; coords: GeoCoords; status: LocationStatus };
 
-export function useUserLocation() {
-  const [label, setLabel] = useState<string>("Menentukan lokasi…");
-  const [coords, setCoords] = useState<GeoCoords>(null);
-  const [status, setStatus] = useState<LocationStatus>("idle");
+const INITIAL: LocationState = { label: "Finding your location…", coords: null, status: "locating" };
 
-  useEffect(() => {
-    let cancelled = false;
+// One lookup per page load, shared by every component that asks. OpenStreetMap's
+// geocoder allows about one request per second, so repeated lookups would get blocked.
+let lookup: Promise<LocationState> | null = null;
+let result: LocationState | null = null;
 
-    if (typeof window === "undefined") return;
-    if (!("geolocation" in navigator)) {
-      setStatus("unsupported");
-      setLabel("Lokasi tidak didukung");
-      return;
-    }
-
-    setStatus("locating");
+function lookUpLocation(): Promise<LocationState> {
+  if (!("geolocation" in navigator)) {
+    return Promise.resolve({ label: "Location not supported", coords: null, status: "unsupported" });
+  }
+  return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        if (cancelled) return;
-        const { latitude, longitude } = coords;
-        setCoords({ latitude, longitude });
-
-        // Reverse geocoding in Indonesian
-        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=id`;
-        fetch(url, { headers: { Accept: "application/json", "Accept-Language": "id" } })
-          .then((r) => r.json())
-          .then((data) => {
-            if (cancelled) return;
-            const addr = data?.address || {};
-            const locality = addr.city || addr.town || addr.village || addr.suburb || addr.county || addr.hamlet;
-            const province = addr.state || addr.region;
-            const pretty = [locality]
-              .filter(Boolean)
-              .join(", ") || (data?.display_name ? String(data.display_name).split(",").slice(0, 2).join(", ") : null) || "Di dekat Anda";
-            setLabel(pretty);
-            setStatus("resolved");
-          })
-          .catch(() => {
-            if (!cancelled) {
-              setLabel("Di dekat Anda");
-              setStatus("error");
-            }
-          });
-      },
-      () => {
-        if (!cancelled) {
-          setStatus("denied");
-          setLabel("Lokasi dimatikan");
+      async ({ coords: { latitude, longitude } }) => {
+        const coords = { latitude, longitude };
+        try {
+          // Place names stay in Indonesian so they match the city names stored on jobs.
+          const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=id`;
+          const data = await (await fetch(url, { headers: { Accept: "application/json" } })).json();
+          const addr = data?.address || {};
+          const city =
+            addr.city || addr.town || addr.village || addr.suburb || addr.county || addr.hamlet ||
+            (data?.display_name ? String(data.display_name).split(",").slice(0, 2).join(", ") : null);
+          resolve({ label: city || "Near you", coords, status: "resolved" });
+        } catch {
+          resolve({ label: "Near you", coords, status: "error" });
         }
       },
+      () => resolve({ label: "Location is off", coords: null, status: "denied" }),
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
     );
+  });
+}
 
+export function useUserLocation() {
+  const [state, setState] = useState<LocationState>(() => result ?? INITIAL);
+
+  useEffect(() => {
+    if (result) return;
+    let cancelled = false;
+    lookup ??= lookUpLocation().then((r) => (result = r));
+    lookup.then((r) => {
+      if (!cancelled) setState(r);
+    });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  return { label, coords, status } as const;
+  return state;
 }

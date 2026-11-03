@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import { JOB_CATEGORIES, type JobCategoryId } from "@/lib/categories"
 import {
   Scissors,
   Hammer,
@@ -18,16 +19,18 @@ export type Category = {
   icon: React.ElementType
 }
 
-const defaultCategories: Category[] = [
-  { id: "Penjahit", label: "Penjahit", icon: Scissors },
-  { id: "Tukang", label: "Tukang", icon: Hammer },
-  { id: "Supir", label: "Supir", icon: Car },
-  { id: "Housekeeping", label: "Housekeeper", icon: BrushCleaning },
-  { id: "Pedagang", label: "Pedagang", icon: ShoppingCart },
-  { id: "Teknisi", label: "Teknisi", icon: Wrench },
-  { id: "Pemasak", label: "Pemasak", icon: CookingPot },
-  { id: "Admin", label: "Admin", icon: ClipboardList },
-]
+const ICONS: Record<JobCategoryId, React.ElementType> = {
+  tailor: Scissors,
+  builder: Hammer,
+  driver: Car,
+  housekeeping: BrushCleaning,
+  vendor: ShoppingCart,
+  technician: Wrench,
+  cook: CookingPot,
+  admin: ClipboardList,
+}
+
+const defaultCategories: Category[] = JOB_CATEGORIES.map(({ id, label }) => ({ id, label, icon: ICONS[id] }))
 
 type Props = {
   value?: string | null
@@ -35,31 +38,32 @@ type Props = {
   categories?: Category[]
 }
 
+// Pictogram tiles: the icon carries the meaning for people who read slowly.
 export function CategoryGrid({ value, onChange, categories = defaultCategories }: Props) {
   return (
-    <div className="my-8">
-      <h3 className="text-xl font-semibold md:text-2xl">Kategori Pekerjaan</h3>
-      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+    <fieldset className="mt-8">
+      <legend className="text-base font-semibold">Type of work</legend>
+      <div className="mt-3 grid grid-cols-4 gap-2 sm:gap-3 lg:grid-cols-8">
         {categories.map((c) => {
           const active = value === c.id
           const Icon = c.icon
           return (
             <button
               key={c.id}
+              type="button"
               onClick={() => onChange?.(active ? null : c.id)}
-              className={cn(
-                "flex flex-col items-center justify-center rounded-2xl border bg-card px-4 py-6 text-center transition-all",
-                "bg-primary/20 hover:bg-primary/30 hover:shadow-sm",
-                active && "border-primary bg-primary/10 shadow-md"
-              )}
               aria-pressed={active}
+              className={cn(
+                "flex min-h-22 flex-col items-center justify-center gap-2 rounded-xl border bg-card px-1 py-3 text-center transition-colors hover:border-primary/40",
+                active && "border-primary bg-accent text-accent-foreground"
+              )}
             >
-              <Icon className={cn("h-10 w-10 text-primary")} />
-              <div className="mt-3 font-medium">{c.label}</div>
+              <Icon className="size-6" aria-hidden />
+              <span className="text-sm font-medium leading-tight">{c.label}</span>
             </button>
           )
         })}
       </div>
-    </div>
+    </fieldset>
   )
 }

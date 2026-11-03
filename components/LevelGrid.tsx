@@ -10,9 +10,9 @@ export type Level = {
 }
 
 const defaultLevels: Level[] = [
-  { id: "Pemula", label: "Pemula", icon: Sprout },
-  { id: "Menengah", label: "Menengah", icon: Settings },
-  { id: "Lanjutan", label: "Lanjutan", icon: Rocket },
+  { id: "Beginner", label: "Beginner", icon: Sprout },
+  { id: "Intermediate", label: "Intermediate", icon: Settings },
+  { id: "Advanced", label: "Advanced", icon: Rocket },
 ]
 
 type Props = {
@@ -23,34 +23,29 @@ type Props = {
 
 export function LevelGrid({ value, onChange, levels = defaultLevels }: Props) {
   return (
-    <div className="my-8">
-      <h3 className="text-xl font-semibold md:text-2xl">Tingkat Kesulitan</h3>
-      <div
-        className="
-          mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4
-          md:grid-cols-3 lg:grid-cols-3
-        "
-      >
+    <fieldset className="mt-8">
+      <legend className="text-base font-semibold">Level</legend>
+      <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
         {levels.map((lvl) => {
           const active = value === lvl.id
           const Icon = lvl.icon
           return (
             <button
               key={lvl.id}
+              type="button"
               onClick={() => onChange?.(active ? null : lvl.id)}
-              className={cn(
-                "flex flex-col items-center justify-center rounded-2xl border bg-card px-8 py-8 text-center transition-all",
-                "bg-primary/20 hover:bg-primary/30  hover:shadow-sm",
-                active && "border-primary bg-primary/10 shadow-md"
-              )}
               aria-pressed={active}
+              className={cn(
+                "flex h-12 items-center justify-center gap-2 rounded-lg border bg-card px-2 transition-colors hover:border-primary/40",
+                active && "border-primary bg-accent text-accent-foreground"
+              )}
             >
-              <Icon className={cn("h-10 w-10 text-primary")} />
-              <div className="mt-3 font-medium text-lg">{lvl.label}</div>
+              <Icon className="size-5 shrink-0" aria-hidden />
+              <span className="text-sm font-medium sm:text-base">{lvl.label}</span>
             </button>
           )
         })}
       </div>
-    </div>
+    </fieldset>
   )
 }

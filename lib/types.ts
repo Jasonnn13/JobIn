@@ -3,28 +3,26 @@ export type Job = {
   title: string
   location: string
   pay: string
+  /** Category id from lib/categories. */
   category: string
   employer: string
+  description: string
   image: string
-  status: string
+  status: "open" | "closed"
   uid: string
+  /** ISO timestamp. */
   postedDate: string
-  requirements?: {
-    skills?: string[]
-    experience?: string
-    uid?: string 
-  }
 }
 
-
 export type Course = {
-    id: string
-    title: string
-    category: string
-    duration: string
-    level: string
-    image: string
-    description: string
-  }
-  
-  
+  id: string
+  title: string
+  category: string
+  duration: string
+  level: string
+  image: string
+  description: string
+  author: string | null
+  rating: number | null
+  lessons: { title: string }[]
+}

@@ -1,125 +1,106 @@
 'use client';
-import { useState } from 'react';
-import { auth } from '@/lib/firebase'; // Import Firebase Authentication
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Firebase auth function for login
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { X } from "lucide-react";
-import { useRouter } from 'next/navigation'; // Untuk navigasi setelah login berhasil
 
-export default function LoginPage() {
+import { Suspense, useState } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import { safeNext } from '@/lib/safe-redirect';
+import { AuthShell } from '@/components/AuthShell';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+
+const NOTICES: Record<string, string> = {
+  'wrong-app': 'That account is an employer account. Log in on JobHire, or log in here with a worker account.',
+  'confirm-failed': 'That confirmation link is invalid or has expired. Log in to get a new one.',
+  'no-profile': 'This account isn’t fully set up yet. Try again in a moment, or contact support if it keeps happening.',
+};
+
+function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isFormValid, setIsFormValid] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [error, setError] = useState(NOTICES[searchParams.get('error') ?? ''] ?? '');
   const [loading, setLoading] = useState(false);
 
-  const router = useRouter();  // Untuk navigasi setelah login berhasil
+  const canSubmit = email.trim() !== '' && password !== '' && !loading;
 
-  // Validasi form untuk memastikan email dan password valid
-  const validateForm = () => {
-    setIsFormValid(!!(email && password));
-  };
-
-  // Handle perubahan pada input email
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-    validateForm();  // Validasi form saat ada perubahan
-  };
-
-  // Handle perubahan pada input password
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-    validateForm();  // Validasi form saat ada perubahan
-  };
-
-  // Handle submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canSubmit) return;
     setLoading(true);
-    setErrorMsg('');  // Reset error message
+    setError('');
 
-    try {
-      // Melakukan login dengan email dan password menggunakan Firebase Authentication
-      await signInWithEmailAndPassword(auth, email, password);
-
-      // Jika login berhasil, arahkan ke halaman beranda
-      router.push('/protected/beranda');
-    } catch (error) {
-      setErrorMsg('Email atau password salah.');
-      console.error("Error during login:", error);
-    } finally {
-      setLoading(false);  // Menghentikan loading
+    const supabase = createClient();
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (signInError) {
+      setError(
+        signInError.code === 'email_not_confirmed'
+          ? 'Confirm your email first. Check your inbox for the link we sent.'
+          : 'Incorrect email or password.'
+      );
+      setLoading(false);
+      return;
     }
+    // The role lives in profiles; my_role() reads it for the signed-in user.
+    const { data: role } = await supabase.rpc('my_role');
+    if (role !== 'worker') {
+      await supabase.auth.signOut();
+      setError(NOTICES[role ? 'wrong-app' : 'no-profile']);
+      setLoading(false);
+      return;
+    }
+
+    router.replace(safeNext(searchParams.get('next'), '/home'));
+    router.refresh();
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      {/* Tombol X untuk kembali ke home */}
-      <Link
-        href="/"
-        className="absolute top-6 right-6 text-black hover:text-neutral-600 transition-colors"
-        aria-label="Kembali ke halaman utama"
-      >
-        <Button className="bg-primary/30 rounded-full text-neutral-600 py-5 text-bold hover:text-background">
-          <X className="w-6 h-6 text-bold" />
-        </Button>
-      </Link>
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+      <div className="space-y-1.5">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </div>
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      <Button type="submit" size="lg" className="w-full" disabled={!canSubmit}>
+        {loading ? 'Logging in…' : 'Log in'}
+      </Button>
+    </form>
+  );
+}
 
-      <Card className="w-[380px] shadow-none sm:shadow-md border-none">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Masuk Akun</CardTitle>
-          <p className="text-sm text-muted-foreground mt-1">
-            Belum punya akun?{" "}
-            <Link href="/daftar" className="font-semibold hover:underline">
-              Daftar
-            </Link>
-          </p>
-        </CardHeader>
-
-        <CardContent className="space-y-4 mt-2">
-          <div className="space-y-1">
-            <label htmlFor="email" className="text-sm font-medium">
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Masukkan email"
-              value={email}
-              onChange={handleEmailChange}
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label htmlFor="password" className="text-sm font-medium">
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Masukkan password"
-              value={password}
-              onChange={handlePasswordChange}
-            />
-          </div>
-        </CardContent>
-
-        <CardFooter>
-          <Button
-            className="w-full text-white"
-            onClick={handleSubmit}
-            disabled={loading || !isFormValid} // Disable jika form tidak valid atau sedang loading
-          >
-            {loading ? 'Memuat...' : 'Masuk'}
-          </Button>
-        </CardFooter>
-
-        {/* Tampilkan pesan error jika ada */}
-        {errorMsg && <p className="text-sm text-red-400 text-center mb-10">{errorMsg}</p>}
-      </Card>
-    </div>
+export default function LoginPage() {
+  return (
+    <AuthShell
+      title="Log in"
+      subtitle={
+        <>
+          Don&apos;t have an account?{' '}
+          <Link href="/signup" className="font-medium text-primary hover:underline">
+            Sign up
+          </Link>
+        </>
+      }
+    >
+      <Suspense>
+        <LoginForm />
+      </Suspense>
+    </AuthShell>
   );
 }

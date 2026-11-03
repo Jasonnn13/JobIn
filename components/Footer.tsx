@@ -1,99 +1,34 @@
-import { Facebook, Instagram, Youtube } from "lucide-react";
+import Link from "next/link";
+
+const LINKS = [
+  { href: "/jobs", label: "Jobs" },
+  { href: "/courses", label: "Courses" },
+  { href: "/profile", label: "Profile" },
+  { href: "/about", label: "About us" },
+];
 
 const Footer = () => {
   return (
-    <footer className="bg-secondary/50 border-t mt-12 ">
-      <div className="container py-12 ">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8  px-10 lg:px-20">
-          {/* Column 1 - Brand */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 ">
-                <img src="/logo.png" alt="" />
-              </div>
-              <span className="font-bold text-xl text-foreground">JobIn</span>
-            </div>
-            <p className="text-sm text-muted-foreground italic">
-              "Everyone Can Work."
-            </p>
-          </div>
-
-          {/* Column 2 - About */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-foreground">About</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <a href="#about" className="hover:text-foreground transition-colors">
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a href="#team" className="hover:text-foreground transition-colors">
-                  Our Team
-                </a>
-              </li>
-              <li>
-                <a href="#careers" className="hover:text-foreground transition-colors">
-                  Careers at JobIn
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 3 - Support */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-foreground">Support</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <a href="#contact" className="hover:text-foreground transition-colors">
-                  Contact Us
-                </a>
-              </li>
-              <li>
-                <a href="#help" className="hover:text-foreground transition-colors">
-                  Help Center
-                </a>
-              </li>
-              <li>
-                <a href="#privacy" className="hover:text-foreground transition-colors">
-                  Privacy Policy
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4 - Social Media */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-foreground">Follow Us</h3>
-            <div className="flex gap-4">
-              <a
-                href="#facebook"
-                className="h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-5 w-5 text-primary" />
-              </a>
-              <a
-                href="#instagram"
-                className="h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-5 w-5 text-primary" />
-              </a>
-              <a
-                href="#youtube"
-                className="h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
-                aria-label="YouTube"
-              >
-                <Youtube className="h-5 w-5 text-primary" />
-              </a>
-            </div>
-          </div>
+    <footer className="mt-16 border-t bg-card">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+        <div>
+          <span className="flex items-center gap-2">
+            <img src="/logo.png" alt="" className="size-6" />
+            <span className="text-lg font-semibold tracking-tight">JobIn</span>
+          </span>
+          <p className="mt-2 text-sm text-muted-foreground">Jobs and training for blue-collar workers. © 2025</p>
         </div>
-
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          © 2025 JobIn. All rights reserved.
-        </div>
+        <nav aria-label="Footer">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
+            {LINKS.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="text-muted-foreground hover:text-foreground">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </footer>
   );

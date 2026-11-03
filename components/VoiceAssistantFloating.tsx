@@ -1,9 +1,72 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createSpeechConfig, recognizeOnce, speak, parseIntent, VAStatus } from "@/lib/voice";
+import { createSpeechConfig, recognizeOnce, speak, VAStatus } from "@/lib/voice";
+import { resolveUtterance } from "@/lib/assistant/host";
+import type { SpeechConfig } from "microsoft-cognitiveservices-speech-sdk";
 import { Mic, Square } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+// Reads a spoken summary of the current page. Uses no component state; status updates go through setStatusFn.
+async function summarizeAndReadCurrentPage(cfg: SpeechConfig, setStatusFn: (s: VAStatus) => void) {
+  try {
+    const main = document.querySelector("main") || document.body;
+    const title = (document.title || "").trim();
+    const raw = (main?.textContent || "").replace(/\s+/g, " ").trim();
+    if (!raw) {
+      setStatusFn("speaking");
+      await speak(cfg, "Sorry, this page has no text to summarize.");
+      return;
+    }
+
+    setStatusFn("thinking");
+    // The server writes the instructions; only the page itself is sent (it trims to 4,000 characters).
+    const kind = /^\/profile\b/.test(window.location.pathname) ? "profile" : "page";
+    const res = await fetch("/api/ai/summarize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, text: raw.slice(0, 4000), kind }),
+    });
+    if (!res.ok) {
+      try {
+        console.error("/api/ai/summarize error:", await res.json());
+      } catch {}
+      setStatusFn("speaking");
+      await speak(cfg, "Sorry, I can't reach the assistant to summarize right now.");
+      return;
+    }
+    const json = await res.json();
+    const summary: string = json?.text || "";
+    if (!summary) {
+      // provide audible feedback if response is empty
+      setStatusFn("speaking");
+      await speak(cfg, "Sorry, I didn't get a summary back.");
+      return;
+    }
+
+    // Speak the summary in manageable chunks
+    const MAX_CHUNK = 800;
+    let i = 0;
+    while (i < summary.length) {
+      let end = Math.min(i + MAX_CHUNK, summary.length);
+      if (end < summary.length) {
+        const slice = summary.slice(i, end);
+        const lastPunct = Math.max(slice.lastIndexOf("."), slice.lastIndexOf("!"), slice.lastIndexOf("?"));
+        if (lastPunct > 100) end = i + lastPunct + 1;
+      }
+      const part = summary.slice(i, end).trim();
+      if (part) {
+        setStatusFn("speaking");
+        await speak(cfg, part);
+      }
+      i = end;
+    }
+
+    setStatusFn("idle");
+  } catch {
+    setStatusFn("error");
+  }
+}
 
 export default function VoiceAssistantFloating() {
   const router = useRouter();
@@ -17,12 +80,13 @@ export default function VoiceAssistantFloating() {
     if (!enabled) return;
     let cancelled = false;
     (async function runLoop() {
-      const cfg = createSpeechConfig();
-      if (!cfg) {
-        setStatus("error");
-        return;
-      }
       while (loopRef.current && !cancelled) {
+        // Re-fetched each turn so the short-lived speech token stays fresh.
+        const cfg = await createSpeechConfig();
+        if (!cfg) {
+          setStatus("error");
+          return;
+        }
         try {
           setStatus("listening");
           const text = await recognizeOnce(cfg);
@@ -31,48 +95,23 @@ export default function VoiceAssistantFloating() {
           if (busyRef.current) continue;
           busyRef.current = true;
 
-          const intent = parseIntent(text);
-          if (intent?.back) {
-            setStatus("speaking");
-            await speak(cfg, intent.announce || "Kembali");
-            router.back();
-            busyRef.current = false;
-            continue;
-          }
-          if (intent?.navigateTo) {
-            setStatus("speaking");
-            await speak(cfg, intent.announce || "Membuka halaman");
-            router.push(intent.navigateTo);
-            busyRef.current = false;
-            continue;
-          }
-
-          // Voice command: summarize current page
-          const lower = text.toLowerCase();
-          const wantsSummary =
-            lower.includes("bacakan halaman") ||
-            lower.includes("tolong bacakan halaman") ||
-            lower.includes("ringkas halaman") ||
-            lower.includes("baca ringkasan halaman") ||
-            lower.includes("read this page") ||
-            lower.includes("read page") ||
-            lower.includes("summarize this page");
-          if (wantsSummary) {
-            await summarizeAndReadCurrentPage(cfg, setStatus);
-            busyRef.current = false;
-            continue;
-          }
-
+          // The registry decides what the words mean; this component only speaks and runs the result.
           setStatus("thinking");
-          const res = await fetch("/api/ai/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: text, locale: "id-ID" }),
+          const outcome = await resolveUtterance(text, {
+            pathname: window.location.pathname,
+            navigate: (href) => router.push(href),
+            back: () => router.back(),
+            readPage: () => summarizeAndReadCurrentPage(cfg, setStatus),
           });
-          const json = await res.json();
-          const assistant = (json?.text as string) || "";
           setStatus("speaking");
-          await speak(cfg, assistant || "Baik, ada yang bisa saya bantu?");
+          if (outcome.kind === "action") {
+            await speak(cfg, outcome.announce);
+            await outcome.run();
+          } else if (outcome.kind === "reply") {
+            await speak(cfg, outcome.text);
+          } else {
+            await speak(cfg, "Sorry, I didn't understand. Try saying “find driver jobs” or “open my profile”.");
+          }
         } catch {
           setStatus("error");
         } finally {
@@ -92,99 +131,48 @@ export default function VoiceAssistantFloating() {
   const thinking = status === "thinking";
   const speaking = status === "speaking";
 
-  async function summarizeAndReadCurrentPage(cfg: any, setStatusFn: (s: VAStatus) => void) {
-    try {
-      const main = document.querySelector("main") || document.body;
-      const title = (document.title || "").trim();
-      const raw = (main?.textContent || "").replace(/\s+/g, " ").trim();
-      if (!raw) {
-        setStatusFn("speaking");
-        await speak(cfg, "Maaf, halaman ini tidak memiliki teks untuk diringkas.");
-        return;
-      }
-
-  const MAX_INPUT = 4000; // keep prompt size modest for provider limits
-      const content = `${title ? `${title}. ` : ""}${raw}`.slice(0, MAX_INPUT);
-
-      setStatusFn("thinking");
-      const isProfile = typeof window !== 'undefined' && /\/profil\b/.test(window.location.pathname);
-      const instruction = isProfile
-        ? "Jelaskan halaman profil pengguna untuk tunanetra, tanpa istilah teknis. Sebutkan: nama pengguna, pekerjaan/headline, lokasi (jika ada), nomor telepon (jika ada), foto profil, daftar keahlian, pengalaman, serta tombol penting seperti Edit Profil dan Logout. Gunakan 5-8 kalimat singkat dan jelas."
-        : "Ringkas halaman ini untuk tunanetra, tanpa istilah teknis. Sebutkan judul, tujuan utama halaman, bagian/bagian penting, dan tombol/tautan yang bisa ditekan. Gunakan 5-8 kalimat singkat dan jelas.";
-      const prompt = `${instruction}\n\n---\n${content}`;
-      const res = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, locale: "id-ID" }),
-      });
-      if (!res.ok) {
-        try {
-          const errJson = await res.json();
-          console.error("/api/ai/chat error:", errJson);
-        } catch {}
-        setStatusFn("speaking");
-        await speak(cfg, "Maaf, saya tidak dapat menghubungi AI untuk ringkasan saat ini.");
-        return;
-      }
-      const json = await res.json();
-      let summary: string = json?.text || "";
-      if (!summary) {
-        // provide audible feedback if response is empty
-        setStatusFn("speaking");
-        await speak(cfg, "Maaf, saya tidak mendapatkan ringkasan dari AI.");
-        return;
-      }
-
-      // Speak the summary in manageable chunks
-      const MAX_CHUNK = 800;
-      let i = 0;
-      while (i < summary.length) {
-        let end = Math.min(i + MAX_CHUNK, summary.length);
-        if (end < summary.length) {
-          const slice = summary.slice(i, end);
-          const lastPunct = Math.max(slice.lastIndexOf("."), slice.lastIndexOf("!"), slice.lastIndexOf("?"));
-          if (lastPunct > 100) end = i + lastPunct + 1;
-        }
-        const part = summary.slice(i, end).trim();
-        if (part) {
-          setStatusFn("speaking");
-          await speak(cfg, part);
-        }
-        i = end;
-      }
-
-      setStatusFn("idle");
-    } catch {
-      setStatusFn("error");
-    }
-  }
-
   const stopAll = () => {
     loopRef.current = false;
     setEnabled(false);
     setStatus("idle");
   };
 
+  const statusText = !enabled
+    ? "Talk to Jobi"
+    : status === "error"
+      ? "Microphone unavailable"
+      : listening
+        ? "Listening…"
+        : thinking
+          ? "Thinking…"
+          : speaking
+            ? "Speaking…"
+            : "Ready. Go ahead and speak";
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
-      <div className="bg-white shadow-lg rounded-xl p-3 flex flex-col md:flex-row items-end md:items-center gap-2 border">
-        <button
-          onClick={() => setEnabled((v) => !v)}
-          className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
-            enabled ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"
-          }`} 
-          aria-pressed={enabled}
-        >
-          <Mic className="h-4 w-4" />
-          {enabled ? (listening ? "Mendengar…" : thinking ? "Berpikir…" : speaking ? "Membacakan…" : "Siap") : "Aktifkan"}
-        </button>
+    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full border bg-card p-1.5 pl-4 shadow-lg">
+      <p className="text-sm font-medium" aria-live="polite">
+        {statusText}
+      </p>
+      {enabled && (
         <button
           onClick={stopAll}
-          className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium bg-muted"
+          className="inline-flex size-12 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
         >
-          <Square className="h-4 w-4" /> Hentikan
+          <Square className="size-5" aria-hidden />
+          <span className="sr-only">Stop Jobi</span>
         </button>
-      </div>
+      )}
+      <button
+        onClick={() => setEnabled((v) => !v)}
+        aria-pressed={enabled}
+        className={`inline-flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 ${
+          listening ? "ring-4 ring-primary/25 motion-safe:animate-pulse" : ""
+        }`}
+      >
+        <Mic className="size-6" aria-hidden />
+        <span className="sr-only">{enabled ? "Pause Jobi" : "Turn on Jobi"}</span>
+      </button>
     </div>
   );
 }

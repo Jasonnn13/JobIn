@@ -1,64 +1,66 @@
-import { Button } from "@/components/ui/button";
-import { Briefcase, BookOpen, Mic } from "lucide-react";
-import heroImage from "@/assets/hero-image.jpg";
 import Link from "next/link";
+import { BadgeCheck, Mic, Wifi } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const POINTS = [
+  { icon: BadgeCheck, title: "Free for workers", body: "Sign up, apply, and take courses at no cost." },
+  { icon: Mic, title: "Works by voice", body: "Ask Jobi to open a page or read it aloud." },
+  { icon: Wifi, title: "Light on weak connections", body: "Pages keep working when the signal drops in and out." },
+];
 
 const LandingPage = () => {
   return (
-    //landing page
-    <section className="relative overflow-hidden gradient-subtle py-20 md:py-32 px-10 lg:px-20">
-      <div className="absolute z-10 top-5 left-5 flex gap-2 ">
-        <img src="/logo.png" alt="logo" className="object-cover h-6 w-6" />
-        <span className="font-bold text-xl text-foreground">JobIn</span>
-      </div>
-      
- 
-      <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8 animate-in fade-in slide-in-from-left duration-700">
-            <h2 className="text-3xl md:text-5xl font-bold leading-tight text-foreground">
-              Tanpa  Halangan,
-              <br />
-              <span className="text-primary">Semua Bisa Bekerja.</span>
-            </h2>
-            
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-            Temukan peluang baru dan kembangkan keterampilan di platform yang dirancang untuk pekerja informal.
-            </p>
-
-            
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <Link href="/login" className="">
-                <Button size="lg" className="w-full text-base h-14 px-8 rounded-xl gradient-blue hover:opacity-90 transition-smooth">
-                    Login
-                </Button>
-              </Link>
-              <Link href="/role" className="">
-                <Button size="lg" variant="outline" className="w-full text-base h-14 px-8 rounded-xl border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-smooth">
-                  Daftar
-                </Button>
-              </Link>
-            </div>
-            
-            <div className="flex items-center gap-3 pt-4 text-muted-foreground">
-              <Mic className="w-5 h-5 text-primary" />
-              <span className="text-sm">Voice assistance available - just ask!</span>
-            </div>
-          </div>
-          
-          <div className="relative animate-in fade-in slide-in-from-right duration-700  h-full">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl h-full">
-              <img 
-                src="/hero.png"
-                alt="Happy informal workers learning and working"
-                className=" h-full w-auto object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
-            </div>
-          </div>
+    <div className="flex min-h-dvh flex-col bg-card">
+      <header className="border-b">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <span className="flex items-center gap-2">
+            <img src="/logo.png" alt="" className="size-7" />
+            <span className="text-xl font-semibold tracking-tight">JobIn</span>
+          </span>
+          <Button asChild variant="ghost">
+            <Link href="/login">Log in</Link>
+          </Button>
         </div>
-      </div>
-    </section>
+      </header>
+
+      <main className="flex-1">
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl font-semibold leading-[1.1] md:text-5xl lg:text-6xl">
+              Daily work and skills training, in one app.
+            </h1>
+            <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-muted-foreground">
+              JobIn connects blue-collar workers with jobs nearby, from construction and driving to repairs and
+              cooking, and offers short courses to build new skills.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg">
+                <Link href="/role">Sign up free</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link href="/login">I already have an account</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t bg-background">
+          <ul className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3 lg:px-8">
+            {POINTS.map(({ icon: Icon, title, body }) => (
+              <li key={title} className="flex gap-4">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <div>
+                  <h2 className="text-base font-semibold tracking-normal">{title}</h2>
+                  <p className="mt-1 text-base text-muted-foreground">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
+    </div>
   );
 };
 

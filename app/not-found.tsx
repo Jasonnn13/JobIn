@@ -10,7 +10,6 @@ export default function NotFound() {
   const router = useRouter()
 
   const handleBack = () => {
-    // Kembali ke halaman sebelumnya
     router.back()
   }
 
@@ -21,6 +20,7 @@ export default function NotFound() {
         className="absolute top-5 right-5 bg-primary/30 rounded-full text-neutral-600 py-5 font-bold hover:text-background"
       >
         <X className="w-6 h-6" />
+        <span className="sr-only">Go back</span>
       </Button>
 
       <Image
@@ -32,7 +32,7 @@ export default function NotFound() {
       />
 
       <h3 className="font-semibold text-lg text-neutral-700">
-        Yah, Terjadi kesalahan
+        This page doesn’t exist
       </h3>
     </div>
   )

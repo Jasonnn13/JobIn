@@ -1,6 +1,6 @@
-# 👷‍♂️🏢 JobIn - Job searching and learning for Informal Workers
+# 👷‍♂️🏢 JobIn - Job searching and learning for blue-collar workers
 
-JobIn  is a web platform for informal workers looking to find jobs and learning new skills. The platform is built to address the challenges in Indonesia, where there is no digital job platform like LinkedIn that caters specifically to the needs of low-income, rural communities. With the help of an advanced *AI voice assistant*, JobIn makes it easy for those with limited digital literacy to navigate the site. It also works well with *low internet connectivity*, ensuring accessibility for users in areas with limited resources.
+JobIn is a web platform for blue-collar workers (builders, drivers, technicians, tailors, cooks, and more) looking to find jobs and learn new skills. The platform is built to address the challenges in Indonesia, where there is no digital job platform like LinkedIn that caters specifically to the needs of low-income, rural communities. With the help of an advanced *AI voice assistant*, JobIn makes it easy for those with limited digital literacy to navigate the site. It also works well with *low internet connectivity*, ensuring accessibility for users in areas with limited resources.
 
 ## Overview
 
@@ -11,59 +11,58 @@ With JobIn you can:
 
 ## Tech Stack
 
-- Next.js + React — App framework, routing, SSR/SSG, UI
-- TypeScript — Type‑safe application code
-- Firebase — App platform (Auth, database/storage as configured)
-- Firebase Auth — Authentication for users
-- Cloudinary — Media management and image delivery
-- Vercel — Hosting and CI/CD for the Next.js app
-- CSS — Styling
+- Next.js 16 (App Router) + React + TypeScript
+- Supabase: Postgres database, Auth, and Storage, shared with JobHire
+- Groq (AI voice assistant) and Azure Speech (speech-to-text and text-to-speech)
+- Tailwind CSS, deployed on Vercel
 
 ## Getting Started
 
 ### Prerequisites
-- Next.js 18+ (LTS recommended)
-- A package manager: npm (bundled with Next), pnpm, or Yarn
-- A Firebase project (for Auth and other services you use)
-- A Cloudinary account (for media)
+- Node.js 20.9+ (LTS recommended)
+- A Supabase project (one project serves both JobIn and JobHire)
 
 ### Installation
 
 ```sh
-# Clone the repository
-git clone https://github.com/medlynhan/JobIn.git
+git clone https://github.com/Jasonnn13/JobIn.git
 cd JobIn
-
-# Install dependencies (pick one)
 npm install
-# or
-pnpm install
-# or
-yarn install
 ```
+
+### Set up Supabase
+
+This repo holds the database schema for both apps.
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. In the dashboard, open **SQL Editor** and run `supabase/migrations/20261103000000_init.sql`, then `supabase/seed.sql` (starter courses).
+3. Under **Authentication → URL Configuration**, set the Site URL to your JobIn URL and add both apps' confirm routes to the redirect URLs, for example `https://your-jobin.vercel.app/auth/confirm` and `https://your-jobhire.vercel.app/auth/confirm` (plus `http://localhost:3000/auth/confirm` for development).
+4. After any schema change, regenerate the types with `npx supabase gen types typescript --project-id <project-ref> > lib/supabase/database.types.ts` and copy the file to JobHire.
+
+How data is protected: the browser talks to Supabase directly, so every rule lives in the migration. Row-level security limits which rows each user sees, column grants limit which fields they can write, and each account is permanently a **worker** (JobIn) or an **employer** (JobHire). `proxy.ts` only lets workers into JobIn's signed-in pages.
 
 ### Environment Variables
 
-Create a `.env` file in the project root and add your values. Common examples:
+Create a `.env.local` file in the project root (it is git-ignored — never commit it):
 
 ```bash
-# Firebase (client-side keys must be NEXT_PUBLIC_ to be exposed to the browser)
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+# Supabase — from Project Settings → API (both are safe to expose to the browser)
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 
-# Cloudinary
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
-NEXT_PUBLIC_CLOUDINARY_API_KEY=your_api_key
-NEXT_PUBLIC_CLOUDINARY_API_SECRET=your_api_secret
+# Groq — powers the voice assistant's answers (server only)
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=openai/gpt-oss-20b
+
+# Azure Speech — speech-to-text / text-to-speech (server only;
+# the browser receives short-lived tokens from /api/speech/token)
+AZURE_SPEECH_KEY=your_azure_speech_key
+AZURE_SPEECH_REGION=southeastasia
 ```
 
 Notes:
-- In Next.js, variables available to the browser must be prefixed with `NEXT_PUBLIC_`.
-- Do not expose server-only secrets (like `CLOUDINARY_API_SECRET`) to the client.
+- Only variables prefixed with `NEXT_PUBLIC_` reach the browser. Never put a secret (such as the Supabase secret key) in one; this app never needs it.
+- The AI and speech routes are rate-limited per user (see `lib/api-guard.ts`), so free sign-ups can't run up costs.
 
 ### Run in Development
 
